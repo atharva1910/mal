@@ -27,6 +27,15 @@ impl Printer{
                 self.ret_string =
                     self.ret_string.trim().to_string() + ") ";
             }
+
+            MalType::Vec(t) => {
+                self.ret_string += "[";
+                for mt in t {
+                    self.gen_str(mt);
+                }
+                self.ret_string =
+                    self.ret_string.trim().to_string() + "] ";
+            }
         }
     }
 }

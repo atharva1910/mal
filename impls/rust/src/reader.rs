@@ -37,11 +37,25 @@ impl Reader {
     fn read_from(&mut self) -> Result<MalType, MalError> {
         match self.peek()?.as_str() {
             "(" => Ok(self.read_list("(", ")")?),
-            "[" => Ok(self.read_list("[", "]")?),
+            "[" => Ok(self.read_vec("[", "]")?),
             "{" => Ok(self.read_list("{", "}")?),
+            "'" | "`" | "~" | "~@" => Ok(self.read_quote()?),
             _ => Ok(self.read_atom()?),
-
         }
+    }
+
+    fn read_quote(&mut self) -> Result<MalType, MalError> {
+        if self.peek()?.as_str() != "'" &&
+            self.peek()?.as_str() != "`" &&
+            self.peek()?.as_str() != "~" &&
+            self.peek()?.as_str() != "~@" {
+            return Err(MalError::ParsingError);
+        }
+
+        let mut ret: MalType = MalType::init_list();
+        ret.push(MalType::init_atom(self.next()?)?);
+        ret.push(self.read_from()?);
+        Ok(ret)
     }
 
     fn read_list(&mut self, start: &str, end: &str) -> Result<MalType, MalError> {
@@ -64,8 +78,28 @@ impl Reader {
         Ok(ret)
     }
 
+    fn read_vec(&mut self, start: &str, end: &str) -> Result<MalType, MalError> {
+        if self.peek()?.as_str() != start {
+            return Err(MalError::ParsingError);
+        } else {
+            self.next()?;
+        }
+
+        let mut ret: MalType = MalType::init_vec();
+        loop {
+            if self.peek()?.as_str() == end {
+                self.next()?;
+                break;
+            } else {
+                ret.push(self.read_from()?);
+            }
+        }
+
+        Ok(ret)
+    }
+
     fn read_atom(&mut self) -> Result<MalType, MalError> {
-        Ok(MalType::init_atom(self.next()?))
+        Ok(MalType::init_atom(self.next()?)?)
     }
 
 
