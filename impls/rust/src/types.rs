@@ -1,18 +1,33 @@
 use std::fmt;
+use std::collections::HashMap;
+use ordered_float::OrderedFloat;
+use std::hash::{ Hash, Hasher};
 
-#[derive (Debug)]
-pub enum MalAtomType {
-    Int(i64),
-    Float(f64),
-    Str(String),
-    Sym(String),
-}
-
-#[derive (Debug)]
+#[derive (Debug, Eq, PartialEq)]
 pub enum MalType {
     Atom(MalAtomType),
     List(Vec<MalType>),
     Vec(Vec<MalType>),
+    Hash(HashMap<MalType, MalType>),
+}
+
+impl Hash for MalType {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        match self {
+            MalType::Atom(mat) => mat.hash(state),
+            MalType::List(list) | MalType::Vec(list) => {
+                for mat in list {
+                    mat.hash(state);
+                }
+            }
+            MalType::Hash(hash) => {
+                for (k, v) in hash.iter() {
+                    k.hash(state);
+                    v.hash(state);
+                }
+            }
+        }
+    }
 }
 
 impl MalType {
@@ -24,24 +39,43 @@ impl MalType {
         MalType::Vec(Vec::new())
     }
 
+    pub fn init_dict() -> MalType {
+        MalType::Hash(HashMap::new())
+    }
+
     pub fn push(&mut self, input: MalType) {
         match self {
             Self::List(list) => list.push(input),
             Self::Vec(list) => list.push(input),
-            _ => panic!("Non list type"),
+            Self::Atom(_) | Self::Hash(_) => panic!("Non list type"),
         }
     }
 
     pub fn init_atom(input: String) -> Result<MalType, MalError> {
         Ok(MalType::Atom(MalAtomType::create_atom_type(input)?))
     }
+
+    pub fn insert(&mut self, key: MalType, value: MalType) {
+        match self {
+            Self::Hash(hash) => _ = hash.insert(key, value),
+            Self::List(_) | Self::Vec(_) | Self::Atom(_)   => panic!("Non list type"),
+        }
+    }
+}
+
+#[derive (Debug, PartialEq, Hash, Eq)]
+pub enum MalAtomType {
+    Int(i64),
+    Float(OrderedFloat<f64>),
+    Str(String),
+    Sym(String),
 }
 
 impl MalAtomType {
     pub fn create_atom_type(input: String) -> Result<MalAtomType, MalError> {
 
         if input.parse::<f64>().is_ok() {
-            return Ok(MalAtomType::Float(input.parse::<f64>().unwrap()));
+            return Ok(MalAtomType::Float(OrderedFloat(input.parse::<f64>().unwrap())));
         }
 
         if input.parse::<i64>().is_ok() {

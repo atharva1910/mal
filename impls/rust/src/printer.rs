@@ -36,6 +36,16 @@ impl Printer{
                 self.ret_string =
                     self.ret_string.trim().to_string() + "] ";
             }
+
+            MalType::Hash(t) => {
+                self.ret_string += "{";
+                for (s, mt) in t.into_iter() {
+                    self.gen_str(s);
+                    self.gen_str(mt);
+                }
+                self.ret_string =
+                    self.ret_string.trim().to_string() + "} ";
+            }
         }
     }
 }
