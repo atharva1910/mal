@@ -12,6 +12,7 @@ impl Reader {
             tokens: Reader::tokenize(input),
             pos: 0
         };
+        dbg!(&reader.tokens);
         reader.read_from()
     }
 }
@@ -56,7 +57,7 @@ impl Reader {
                 Ok(ret)
             },
 
-            "'" | "`" | "~" | "~@" => {
+            "'" | "`" | "~" | "~@" | "@" => {
                 let mut ret: MalType = MalType::init_list();
                 ret.push(MalType::init_atom(self.next()?)?);
                 ret.push(self.read_from()?);

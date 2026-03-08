@@ -93,6 +93,7 @@ impl MalAtomType {
         match input.as_str() {
             "+" | "-" | "*" | "/" => Ok(MalAtomType::Sym(input)),
             "'" => Ok(MalAtomType::Sym("quote".to_string())),
+            "@" => Ok(MalAtomType::Sym("deref".to_string())),
             "`" => Ok(MalAtomType::Sym("quasiquote".to_string())),
             "~" => Ok(MalAtomType::Sym("unquote".to_string())),
             "~@" => Ok(MalAtomType::Sym("splice-unquote".to_string())),
