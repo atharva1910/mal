@@ -12,7 +12,7 @@ impl Reader {
             tokens: Reader::tokenize(input),
             pos: 0
         };
-        dbg!(&reader.tokens);
+        //dbg!(&reader.tokens);
         reader.read_from()
     }
 }
@@ -52,7 +52,6 @@ impl Reader {
 
             "{" => {
                 let mut ret = MalType::init_dict();
-                //self.read_list_type("{", "}", &mut ret)?;
                 self.read_dict(&mut ret)?;
                 Ok(ret)
             },
@@ -61,6 +60,15 @@ impl Reader {
                 let mut ret: MalType = MalType::init_list();
                 ret.push(MalType::init_atom(self.next()?)?);
                 ret.push(self.read_from()?);
+                Ok(ret)
+            }
+
+            "^" => {
+                let mut ret: MalType = MalType::init_list();
+                ret.push(MalType::init_atom(self.next()?)?);
+                let meta_data = self.read_from()?;
+                ret.push(self.read_from()?);
+                ret.push(meta_data);
                 Ok(ret)
             }
 

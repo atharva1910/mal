@@ -92,11 +92,12 @@ impl MalAtomType {
     fn create_symbol_type(input:String) -> Result<MalAtomType, MalError> {
         match input.as_str() {
             "+" | "-" | "*" | "/" => Ok(MalAtomType::Sym(input)),
-            "'" => Ok(MalAtomType::Sym("quote".to_string())),
-            "@" => Ok(MalAtomType::Sym("deref".to_string())),
-            "`" => Ok(MalAtomType::Sym("quasiquote".to_string())),
-            "~" => Ok(MalAtomType::Sym("unquote".to_string())),
-            "~@" => Ok(MalAtomType::Sym("splice-unquote".to_string())),
+            "'" => Ok(MalAtomType::Sym("quote".into())),
+            "@" => Ok(MalAtomType::Sym("deref".into())),
+            "`" => Ok(MalAtomType::Sym("quasiquote".into())),
+            "~" => Ok(MalAtomType::Sym("unquote".into())),
+            "~@" => Ok(MalAtomType::Sym("splice-unquote".into())),
+            "^" => Ok(MalAtomType::Sym("with-meta".into())),
             _ => Ok(MalAtomType::Sym(input)),
         }
     }
@@ -123,10 +124,10 @@ impl MalAtomType {
                 } else {
                     escape = false;
                 }
-            }
-
-            if c == '\\' {
+            } else if c == '\\' {
                 escape = !escape;
+            } else if c == 'n'  && escape {
+                escape = false;
             }
         }
 
