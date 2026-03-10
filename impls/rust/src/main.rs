@@ -1,30 +1,60 @@
 mod reader;
 mod printer;
 mod types;
+mod env;
 use std::io::{self, Write};
 use reader::Reader;
 use crate::{
     types::{MalType, MalError},
     printer::Printer,
+    env::Env,
 };
 
-fn READ(input: String) -> Result<MalType, MalError> {
+fn execute_func<F>(func: F)
+where
+     F: Fn()
+{
+    func()
+}
+
+fn read(input: String) -> Result<MalType, MalError> {
     Reader::read_str(input)
 }
 
-fn EVAL(input: MalType) -> MalType {
-    input
+fn eval(input: MalType) -> Result<MalType, MalError> {
+    match input {
+        MalType::Atom(mat) => {
+            match mat {
+                types::MalAtomType::Sym(s) => {
+                    execute_func(Env::map(&s)?);
+                    todo!("call the function");
+                },
+                _ => panic!("atom not handled"),
+            }
+        },
+
+        MalType::List(lmt) => {
+            panic!("list not handled");
+        },
+
+        MalType::Vec(vmt) => {
+            panic!("vec not handled");
+        },
+
+        MalType::Hash(hmt) => {
+            panic!("hash not handled");
+        },
+    }
 }
 
-fn PRINT(input: MalType) -> String {
+fn print(input: MalType) -> String {
     Printer::pr_str(input)
 }
 
 fn rep(input: String) -> Result<String, MalError> {
-    let read_ret = READ(input)?;
-    let eval_ret = EVAL(read_ret);
-    let print_ret = PRINT(eval_ret);
-    Ok(print_ret)
+    let read_ret = read(input)?;
+    let eval_ret = eval(read_ret)?;
+    Ok(print(eval_ret))
 }
 
 fn main() -> io::Result<()> {
