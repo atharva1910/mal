@@ -5,16 +5,16 @@ mod env;
 use std::io::{self, Write};
 use reader::Reader;
 use crate::{
-    types::{MalType, MalError},
+    types::{MalType, MalError, MalAtomType},
     printer::Printer,
     env::Env,
 };
 
-fn execute_func<F>(func: F)
+fn execute_func<F>(func: F, args: &[MalType]) -> Result<MalType, MalError>
 where
-     F: Fn()
+     F: Fn(&[MalType]) -> Result<MalType, MalError>
 {
-    func()
+    func(args)
 }
 
 fn read(input: String) -> Result<MalType, MalError> {
@@ -23,18 +23,12 @@ fn read(input: String) -> Result<MalType, MalError> {
 
 fn eval(input: MalType) -> Result<MalType, MalError> {
     match input {
-        MalType::Atom(mat) => {
-            match mat {
-                types::MalAtomType::Sym(s) => {
-                    execute_func(Env::map(&s)?);
-                    todo!("call the function");
-                },
-                _ => panic!("atom not handled"),
-            }
-        },
+        MalType::Atom(_) => Ok(input),
 
-        MalType::List(lmt) => {
-            panic!("list not handled");
+        MalType::List(mut lmt) => {
+            let func = Env::lookup(lmt.pop_front())?;
+            let args = lmt.into_iter().map(|mt| eval(mt)).collect::<Result<Vec<MalType>, MalError>>();
+            execute_func(func, &args?)
         },
 
         MalType::Vec(vmt) => {

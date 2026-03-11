@@ -1,12 +1,12 @@
 use std::fmt;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use ordered_float::OrderedFloat;
 use std::hash::{ Hash, Hasher};
 
 #[derive (Debug, Eq, PartialEq)]
 pub enum MalType {
     Atom(MalAtomType),
-    List(Vec<MalType>),
+    List(VecDeque<MalType>),
     Vec(Vec<MalType>),
     Hash(HashMap<MalType, MalType>),
 }
@@ -15,7 +15,14 @@ impl Hash for MalType {
     fn hash<H: Hasher>(&self, state: &mut H) {
         match self {
             MalType::Atom(mat) => mat.hash(state),
-            MalType::List(list) | MalType::Vec(list) => {
+
+            MalType::List(list) => {
+                for mat in list {
+                    mat.hash(state);
+                }
+            },
+
+            MalType::Vec(list) => {
                 for mat in list {
                     mat.hash(state);
                 }
@@ -32,7 +39,7 @@ impl Hash for MalType {
 
 impl MalType {
     pub fn init_list() -> MalType {
-        MalType::List(Vec::new())
+        MalType::List(VecDeque::new())
     }
 
     pub fn init_vec() -> MalType {
@@ -45,7 +52,7 @@ impl MalType {
 
     pub fn push(&mut self, input: MalType) {
         match self {
-            Self::List(list) => list.push(input),
+            Self::List(list) => list.push_back(input),
             Self::Vec(list) => list.push(input),
             Self::Atom(_) | Self::Hash(_) => panic!("Non list type"),
         }
