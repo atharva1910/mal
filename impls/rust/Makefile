@@ -1,6 +1,7 @@
 EXEC_DIR := target/release
 STEP0 = step0_repl
 STEP1 = step1_read_print
+STEP2 = step2_eval
 STEP = $(STEP1)
 
 $(EXEC_DIR)/$(STEP):
