@@ -3,7 +3,7 @@ use std::collections::{HashMap, VecDeque};
 use ordered_float::OrderedFloat;
 use std::hash::{ Hash, Hasher};
 
-#[derive (Debug, Eq, PartialEq)]
+#[derive (Debug, Eq, PartialEq, Clone)]
 pub enum MalType {
     Int(i64),
     Float(OrderedFloat<f64>),
