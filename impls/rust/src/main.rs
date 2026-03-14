@@ -22,12 +22,36 @@ fn read(input: String) -> Result<MalType, MalError> {
 }
 
 fn eval(input: MalType, env: &Env) -> Result<MalType, MalError> {
-    if let MalType::List(mut lmt) = input {
-        let func = env.lookup(lmt.pop_front())?;
-        let args = lmt.into_iter().map(|mt| eval(mt, env)).collect::<Result<Vec<MalType>, MalError>>();
-        return execute_func(func, &args?);
+    match input {
+        MalType::List(mut lmt) => {
+            if let Some(mt) = lmt.pop_front() {
+                let func = env.lookup(mt)?;
+                let args = lmt.into_iter().map(|mt| eval(mt, env)).collect::<Result<Vec<MalType>, MalError>>();
+                return execute_func(func, &args?);
+            }
+
+            Ok(MalType::init_list())
+        }
+
+        MalType::Vec(lmt) => {
+            let mut ret = MalType::init_vec();
+            for mt in lmt {
+                ret.push(eval(mt, env)?);
+            }
+            Ok(ret)
+        }
+
+        MalType::Hash(hash) => {
+            let mut ret = MalType::init_dict();
+            for (k, v) in hash.into_iter() {
+                ret.insert(eval(k, env)?,
+                           eval(v, env)?);
+            }
+            Ok(ret)
+        }
+
+        _ =>  Ok(input)
     }
-    Ok(input)
 }
 
 fn print(input: MalType) -> String {

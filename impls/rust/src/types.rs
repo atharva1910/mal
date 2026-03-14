@@ -141,6 +141,7 @@ pub enum MalError {
     Unbalanced,
     ParsingError,
     InvalidToken,
+    InvalidArgsLen,
     InvalidSymbol,
 }
 
@@ -152,6 +153,7 @@ impl fmt::Display for MalError {
            MalError::ParsingError => write!(f, "Failed to Parse MalString"),
            MalError::InvalidToken => write!(f, "Invalid Token"),
            MalError::InvalidSymbol => write!(f, "Invalid Symbol"),
+           MalError::InvalidArgsLen => write!(f, "Invalid Length of arguments"),
        }
     }
 }

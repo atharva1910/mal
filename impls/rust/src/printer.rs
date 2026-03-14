@@ -10,11 +10,11 @@ impl Printer{
             ret_string: String::new()
         };
 
-        //let mut ret = String::new();
-        //printer.gen_str1(input, &mut ret);
-        //ret
-        printer.gen_str(input);
-        printer.ret_string
+        let mut ret = String::new();
+        printer.gen_str1(input, &mut ret);
+        ret
+        //printer.gen_str(input);
+            //printer.ret_string
     }
 
     fn gen_str1(&mut self, input: MalType, ret: &mut String) {
@@ -29,7 +29,7 @@ impl Printer{
                 ret.push_str("(");
 
                 for mt in t {
-                    self.gen_str(mt);
+                    self.gen_str1(mt, ret);
                 }
 
                 *ret =
@@ -39,7 +39,7 @@ impl Printer{
             MalType::Vec(t) => {
                 ret.push_str("[");
                 for mt in t {
-                    self.gen_str(mt);
+                    self.gen_str1(mt, ret);
                 }
                 *ret =
                     ret.trim().to_string() + "]";
@@ -48,8 +48,8 @@ impl Printer{
             MalType::Hash(t) => {
                 ret.push_str("{");
                 for (s, mt) in t.into_iter() {
-                    self.gen_str(s);
-                    self.gen_str(mt);
+                    self.gen_str1(s, ret);
+                    self.gen_str1(mt, ret);
                 }
                 *ret =
                     ret.trim().to_string() + "}";
