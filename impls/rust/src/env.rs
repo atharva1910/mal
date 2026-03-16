@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use ordered_float::OrderedFloat;
 use crate::{
     types::{MalType, MalError},
 };
@@ -34,25 +33,7 @@ impl Env {
         }
 
         args.iter().skip(1).try_fold(args[0].clone(), |ret, mt| {
-            match mt {
-                MalType::Int(i) => {
-                    match ret {
-                        MalType::Int(y) => Ok(MalType::Int(y / i)),
-                        MalType::Float(y) => Ok(MalType::Float(OrderedFloat(y.into_inner() / *i as f64))),
-                        _ => Err(MalError::InvalidToken),
-                    }
-                }
-
-                MalType::Float(f) => {
-                    match ret {
-                        MalType::Int(y) => Ok(MalType::Float(OrderedFloat(y as f64) / f.into_inner())),
-                        MalType::Float(y) => Ok(MalType::Float(y / f)),
-                        _ => Err(MalError::InvalidToken),
-                    }
-                },
-
-                _ => Err(MalError::InvalidToken),
-            }
+            ret / mt.clone()
         })
     }
 
@@ -62,73 +43,19 @@ impl Env {
         }
 
         args.iter().skip(1).try_fold(args[0].clone(), |ret, mt| {
-            match mt {
-                MalType::Int(i) => {
-                    match ret {
-                        MalType::Int(y) => Ok(MalType::Int(y - i)),
-                        MalType::Float(y) => Ok(MalType::Float(OrderedFloat(y.into_inner() - *i as f64))),
-                        _ => Err(MalError::InvalidToken),
-                    }
-                }
-
-                MalType::Float(f) => {
-                    match ret {
-                        MalType::Int(y) => Ok(MalType::Float(OrderedFloat(y as f64) - f.into_inner())),
-                        MalType::Float(y) => Ok(MalType::Float(y - f)),
-                        _ => Err(MalError::InvalidToken),
-                    }
-                },
-
-                _ => Err(MalError::InvalidToken),
-            }
+            ret - mt.clone()
         })
     }
 
     fn mul(args: &[MalType]) -> Result<MalType, MalError> {
         args.iter().try_fold(MalType::Int(1), |ret, mt| {
-            match mt {
-                MalType::Int(i) => {
-                    match ret {
-                        MalType::Int(y) => Ok(MalType::Int(y * i)),
-                        MalType::Float(y) => Ok(MalType::Float(OrderedFloat(y.into_inner() * *i as f64))),
-                        _ => Err(MalError::InvalidToken),
-                    }
-                }
-
-                MalType::Float(f) => {
-                    match ret {
-                        MalType::Int(y) => Ok(MalType::Float(OrderedFloat(y as f64) * f.into_inner())),
-                        MalType::Float(y) => Ok(MalType::Float(y * f)),
-                        _ => Err(MalError::InvalidToken),
-                    }
-                },
-
-                _ => Err(MalError::InvalidToken),
-            }
+            ret * mt.clone()
         })
     }
 
     fn add(args: &[MalType]) -> Result<MalType, MalError> {
         args.iter().try_fold(MalType::Int(0), |ret, mt| {
-            match mt {
-                MalType::Int(i) => {
-                    match ret {
-                        MalType::Int(y) => Ok(MalType::Int(y + i)),
-                        MalType::Float(y) => Ok(MalType::Float(OrderedFloat(y.into_inner() + *i as f64))),
-                        _ => Err(MalError::InvalidToken),
-                    }
-                }
-
-                MalType::Float(f) => {
-                    match ret {
-                        MalType::Int(y) => Ok(MalType::Float(OrderedFloat(y as f64) + f.into_inner())),
-                        MalType::Float(y) => Ok(MalType::Float(y + f)),
-                        _ => Err(MalError::InvalidToken),
-                    }
-                },
-
-                _ => Err(MalError::InvalidToken),
-            }
+            ret + mt.clone()
         })
     }
 

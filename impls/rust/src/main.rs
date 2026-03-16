@@ -2,6 +2,7 @@ mod reader;
 mod printer;
 mod types;
 mod env;
+mod ops;
 use std::io::{self, Write};
 use reader::Reader;
 use crate::{
