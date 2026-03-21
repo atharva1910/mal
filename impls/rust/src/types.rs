@@ -3,6 +3,8 @@ use std::collections::{HashMap, VecDeque};
 use ordered_float::OrderedFloat;
 use std::hash::{ Hash, Hasher};
 
+type MalFunc = fn(&[MalType]) -> Result<MalType, MalError>;
+
 #[derive (Debug, Eq, PartialEq, Clone)]
 pub enum MalType {
     Int(i64),
@@ -12,6 +14,7 @@ pub enum MalType {
     List(VecDeque<MalType>),
     Vec(Vec<MalType>),
     Hash(HashMap<MalType, MalType>),
+    Func(MalFunc),
 }
 
 impl Hash for MalType {
@@ -20,6 +23,7 @@ impl Hash for MalType {
             MalType::Int(i) => i.hash(state),
             MalType::Float(f) => f.hash(state),
             MalType::Str(s) | MalType::Sym(s) =>  s.hash(state),
+            MalType::Func(f) => f.hash(state),
 
             MalType::List(list) => {
                 for mat in list {
@@ -53,6 +57,10 @@ impl MalType {
 
     pub fn init_dict() -> MalType {
         MalType::Hash(HashMap::new())
+    }
+
+    pub fn init_func(f: MalFunc) -> MalType {
+        MalType::Func(f)
     }
 
     pub fn push(&mut self, input: MalType) {

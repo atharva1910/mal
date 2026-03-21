@@ -3,28 +3,33 @@ use crate::{
     types::{MalType, MalError},
 };
 
+pub struct EnvStack {
+    stack: Vec<Env>
+}
+
 pub struct Env {
-    env: HashMap<String, fn(&[MalType]) -> Result<MalType, MalError>>
+    data: HashMap<String, MalType>
 }
 
 impl Env {
     pub fn init() -> Self {
-        let mut env: HashMap<String, fn(&[MalType]) -> Result<MalType, MalError>> = HashMap::new();
-        env.insert("+".into(), Env::add);
-        env.insert("*".into(), Env::mul);
-        env.insert("/".into(), Env::div);
-        env.insert("-".into(), Env::sub);
-        Self {
-            env
-        }
+        let mut ret = Self {
+            data: HashMap::new()
+        };
+
+        ret.set("+".into(), MalType::init_func(Env::add));
+        ret.set("*".into(), MalType::init_func(Env::mul));
+        ret.set("/".into(), MalType::init_func(Env::div));
+        ret.set("-".into(), MalType::init_func(Env::sub));
+
+        ret
     }
 
-    pub fn lookup(&self, input: MalType) -> Result<fn(&[MalType]) -> Result<MalType, MalError> , MalError> {
-        if let MalType::Sym(s) = input {
-            return self.map(&s);
-        }
+    pub fn set(&mut self, key: String, val: MalType) {
+    }
 
-        Err(MalError::InvalidToken)
+    pub fn get(&mut self, key: String) -> Option<MalType> {
+        self.data.get(&key).cloned()
     }
 
     fn div(args: &[MalType]) -> Result<MalType, MalError> {
@@ -57,13 +62,5 @@ impl Env {
         args.iter().try_fold(MalType::Int(0), |ret, mt| {
             ret + mt.clone()
         })
-    }
-
-    fn map(&self, s: &str)  -> Result<fn(&[MalType]) -> Result<MalType, MalError> , MalError> {
-        if let Some(&func) = self.env.get(s) {
-            return Ok(func);
-        }
-
-        Err(MalError::InvalidToken)
     }
 }

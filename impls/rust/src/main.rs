@@ -26,7 +26,9 @@ fn eval(input: MalType, env: &Env) -> Result<MalType, MalError> {
     match input {
         MalType::List(mut lmt) => {
             if let Some(mt) = lmt.pop_front() {
-                let func = env.lookup(mt)?;
+                let func = env.get(mt)? else {
+                    return Err(MalError::InvalidToken);
+                };
                 let args = lmt.into_iter().map(|mt| eval(mt, env)).collect::<Result<Vec<MalType>, MalError>>();
                 return execute_func(func, &args?);
             }
