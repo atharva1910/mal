@@ -22,18 +22,29 @@ fn read(input: String) -> Result<MalType, MalError> {
     Reader::read_str(input)
 }
 
-fn eval(input: MalType, env: &Env) -> Result<MalType, MalError> {
+fn eval(input: MalType, env: &mut Env) -> Result<MalType, MalError> {
     match input {
         MalType::List(mut lmt) => {
-            if let Some(mt) = lmt.pop_front() {
-                let func = env.get(mt)? else {
-                    return Err(MalError::InvalidToken);
-                };
-                let args = lmt.into_iter().map(|mt| eval(mt, env)).collect::<Result<Vec<MalType>, MalError>>();
-                return execute_func(func, &args?);
-            }
+            let Some(opr) = lmt.pop_front() else {
+                return Ok(MalType::init_list());
+            };
 
-            Ok(MalType::init_list())
+            let MalType::Sym(opr_type) = opr else {
+                return Err(MalError::InvalidToken);
+            };
+
+            match &opr_type[..] {
+                "let*" => todo!(),
+                "def!" => todo!(),
+                _ => {
+                    let Some(MalType::Func(func)) = env.get(opr_type) else {
+                        return Err(MalError::InvalidToken);
+                    };
+
+                    let args = lmt.into_iter().map(|mt| eval(mt, env)).collect::<Result<Vec<MalType>, MalError>>();
+                    return execute_func(func, &args?);
+                }
+            }
         }
 
         MalType::Vec(lmt) => {
@@ -62,9 +73,9 @@ fn print(input: MalType) -> String {
 }
 
 fn rep(input: String) -> Result<String, MalError> {
-    let env = Env::init();
+    let mut env = Env::init();
     let read_ret = read(input)?;
-    let eval_ret = eval(read_ret, &env)?;
+    let eval_ret = eval(read_ret, &mut env)?;
     Ok(print(eval_ret))
 }
 

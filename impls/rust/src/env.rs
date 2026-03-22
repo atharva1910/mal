@@ -26,6 +26,7 @@ impl Env {
     }
 
     pub fn set(&mut self, key: String, val: MalType) {
+        self.data.insert(key, val);
     }
 
     pub fn get(&mut self, key: String) -> Option<MalType> {
