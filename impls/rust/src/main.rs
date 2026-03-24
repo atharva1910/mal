@@ -8,7 +8,7 @@ use reader::Reader;
 use crate::{
     types::{MalType, MalError},
     printer::Printer,
-    env::Env,
+    env::{MalEnv, Env},
 };
 
 fn execute_func<F>(func: F, args: &[MalType]) -> Result<MalType, MalError>
@@ -22,7 +22,7 @@ fn read(input: String) -> Result<MalType, MalError> {
     Reader::read_str(input)
 }
 
-fn eval(input: MalType, env: &mut Env) -> Result<MalType, MalError> {
+fn eval(input: MalType, env: &MalEnv) -> Result<MalType, MalError> {
     match input {
         MalType::List(mut lmt) => {
             let Some(opr) = lmt.pop_front() else {
@@ -35,7 +35,18 @@ fn eval(input: MalType, env: &mut Env) -> Result<MalType, MalError> {
 
 
             match &opr_type[..] {
-                "let*" => todo!(),
+                "let*" => {
+                    let Some(key) = lmt.pop_front() else {
+                        return Err(MalError::InvalidToken);
+                    };
+
+                    let Some(val) = lmt.pop_front() else {
+                        return Err(MalError::InvalidToken);
+                    };
+
+                    let val = eval(val, env)?;
+                    let new_env = env::create_child(env, key, val);
+                }
 
                 "def!" => {
                     let Some(key) = lmt.pop_front() else {
@@ -47,11 +58,11 @@ fn eval(input: MalType, env: &mut Env) -> Result<MalType, MalError> {
                     };
 
                     let val = eval(val, env)?;
-                    env.set(key, val);
+                    env::set(env, key, val);
                 }
 
                 _ => {
-                    let Some(MalType::Func(func)) = env.get(opr) else {
+                    let Some(MalType::Func(func)) = env::get(env, opr) else {
                         return Err(MalError::InvalidToken);
                     };
 
@@ -89,9 +100,9 @@ fn print(input: MalType) -> String {
 }
 
 fn rep(input: String) -> Result<String, MalError> {
-    let mut env = Env::init();
+    let env = env::init();
     let read_ret = read(input)?;
-    let eval_ret = eval(read_ret, &mut env)?;
+    let eval_ret = eval(read_ret, &env)?;
     Ok(print(eval_ret))
 }
 
