@@ -29,15 +29,29 @@ fn eval(input: MalType, env: &mut Env) -> Result<MalType, MalError> {
                 return Ok(MalType::init_list());
             };
 
-            let MalType::Sym(opr_type) = opr else {
+            let MalType::Sym(opr_type) = &opr else {
                 return Err(MalError::InvalidToken);
             };
 
+
             match &opr_type[..] {
                 "let*" => todo!(),
-                "def!" => todo!(),
+
+                "def!" => {
+                    let Some(key) = lmt.pop_front() else {
+                        return Err(MalError::InvalidToken);
+                    };
+
+                    let Some(val) = lmt.pop_front() else {
+                        return Err(MalError::InvalidToken);
+                    };
+
+                    let val = eval(val, env)?;
+                    env.set(key, val);
+                }
+
                 _ => {
-                    let Some(MalType::Func(func)) = env.get(opr_type) else {
+                    let Some(MalType::Func(func)) = env.get(opr) else {
                         return Err(MalError::InvalidToken);
                     };
 
@@ -45,6 +59,8 @@ fn eval(input: MalType, env: &mut Env) -> Result<MalType, MalError> {
                     return execute_func(func, &args?);
                 }
             }
+
+            Ok(MalType::init_list())
         }
 
         MalType::Vec(lmt) => {

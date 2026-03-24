@@ -8,7 +8,7 @@ pub struct EnvStack {
 }
 
 pub struct Env {
-    data: HashMap<String, MalType>
+    data: HashMap<MalType, MalType>
 }
 
 impl Env {
@@ -17,19 +17,19 @@ impl Env {
             data: HashMap::new()
         };
 
-        ret.set("+".into(), MalType::init_func(Env::add));
-        ret.set("*".into(), MalType::init_func(Env::mul));
-        ret.set("/".into(), MalType::init_func(Env::div));
-        ret.set("-".into(), MalType::init_func(Env::sub));
+        ret.set(MalType::init_sym("+"), MalType::init_func(Env::add));
+        ret.set(MalType::init_sym("*"), MalType::init_func(Env::mul));
+        ret.set(MalType::init_sym("/"), MalType::init_func(Env::div));
+        ret.set(MalType::init_sym("-"), MalType::init_func(Env::sub));
 
         ret
     }
 
-    pub fn set(&mut self, key: String, val: MalType) {
+    pub fn set(&mut self, key: MalType, val: MalType) {
         self.data.insert(key, val);
     }
 
-    pub fn get(&mut self, key: String) -> Option<MalType> {
+    pub fn get(&mut self, key: MalType) -> Option<MalType> {
         self.data.get(&key).cloned()
     }
 

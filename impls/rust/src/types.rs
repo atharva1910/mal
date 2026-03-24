@@ -47,6 +47,10 @@ impl Hash for MalType {
 }
 
 impl MalType {
+    pub fn init_sym(input: &str) -> MalType {
+        MalType::Sym(input.into())
+    }
+
     pub fn init_list() -> MalType {
         MalType::List(VecDeque::new())
     }
