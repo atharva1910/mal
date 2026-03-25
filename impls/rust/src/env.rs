@@ -6,6 +6,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 pub type MalEnv = Rc<RefCell<Env>>;
 
+#[derive (Debug)]
 pub struct Env {
     data: HashMap<MalType, MalType>,
     parent: Option<MalEnv>,
@@ -16,22 +17,34 @@ fn create_mal_env(env: Env) -> MalEnv {
     Rc::new(RefCell::new(env))
 }
 
+pub fn dump(me: &MalEnv) {
+    dbg!(me);
+}
+
 pub fn set(me: &MalEnv, key: MalType, val: MalType) {
     me.borrow_mut().set(key, val);
+    dump(me);
 }
 
 pub fn get(me: &MalEnv, key: MalType) -> Option<MalType> {
-    me.borrow_mut().get(key)
+    if let Some(ret) = me.borrow_mut().get(key.clone()) {
+        return Some(ret);
+    }
+
+    if me.borrow().parent.is_some() {
+        return get(&me.borrow().parent.clone().unwrap(), key.clone());
+    }
+
+    None
 }
 
-pub fn create_child(me: &MalEnv, key: MalType, val: MalType) -> MalEnv {
+pub fn create_child(me: &MalEnv) -> MalEnv {
     let mut ret = Env {
         data: HashMap::new(),
         parent: None,
     };
 
     ret.parent =  Some(Rc::clone(me));
-    ret.set(key, val);
     create_mal_env(ret)
 }
 

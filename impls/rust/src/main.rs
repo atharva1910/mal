@@ -23,7 +23,7 @@ fn read(input: String) -> Result<MalType, MalError> {
 }
 
 fn eval(input: MalType, env: &MalEnv) -> Result<MalType, MalError> {
-    match input {
+    match input.clone() {
         MalType::List(mut lmt) => {
             let Some(opr) = lmt.pop_front() else {
                 return Ok(MalType::init_list());
@@ -36,16 +36,33 @@ fn eval(input: MalType, env: &MalEnv) -> Result<MalType, MalError> {
 
             match &opr_type[..] {
                 "let*" => {
-                    let Some(key) = lmt.pop_front() else {
+                    let new_env = env::create_child(env);
+
+                    let Some(MalType::List(mut var_list)) = lmt.pop_front() else {
                         return Err(MalError::InvalidToken);
                     };
 
-                    let Some(val) = lmt.pop_front() else {
-                        return Err(MalError::InvalidToken);
+
+                    while let Some(var_def) = var_list.pop_front() {
+                        match var_def {
+                            MalType::List(mut l) => {
+                                let Some(key) = l.pop_front() else {
+                                    return Err(MalError::InvalidToken);
+                                };
+
+                                let Some(val) = l.pop_front() else {
+                                    return Err(MalError::InvalidToken);
+                                };
+
+                                let val = eval(val, &new_env)?;
+                                env::set(&new_env, key, val);
+                            }
+
+                            _ => return Err(MalError::InvalidToken),
+                        }
                     };
 
-                    let val = eval(val, env)?;
-                    let new_env = env::create_child(env, key, val);
+                    return eval(input, &new_env);
                 }
 
                 "def!" => {
@@ -58,7 +75,10 @@ fn eval(input: MalType, env: &MalEnv) -> Result<MalType, MalError> {
                     };
 
                     let val = eval(val, env)?;
-                    env::set(env, key, val);
+                    println!("setting key: {:?} val {:?}", key, val);
+                    env::set(env, key, val.clone());
+                    return Ok(val);
+
                 }
 
                 _ => {
@@ -70,8 +90,6 @@ fn eval(input: MalType, env: &MalEnv) -> Result<MalType, MalError> {
                     return execute_func(func, &args?);
                 }
             }
-
-            Ok(MalType::init_list())
         }
 
         MalType::Vec(lmt) => {
@@ -91,6 +109,14 @@ fn eval(input: MalType, env: &MalEnv) -> Result<MalType, MalError> {
             Ok(ret)
         }
 
+        MalType::Sym(s) => {
+            println!("Get input {:?}", input.clone());
+            if let Some(ret) = env::get(env, input.clone()) {
+                return Ok(ret);
+            }
+            return Err(MalError::InvalidToken);
+        }
+
         _ =>  Ok(input)
     }
 }
@@ -99,14 +125,14 @@ fn print(input: MalType) -> String {
     Printer::pr_str(input)
 }
 
-fn rep(input: String) -> Result<String, MalError> {
-    let env = env::init();
+fn rep(input: String, env: &MalEnv) -> Result<String, MalError> {
     let read_ret = read(input)?;
-    let eval_ret = eval(read_ret, &env)?;
+    let eval_ret = eval(read_ret, env)?;
     Ok(print(eval_ret))
 }
 
 fn main() -> io::Result<()> {
+    let env = env::init();
     loop {
         print!("user> ");
         let _ = io::stdout().flush();
@@ -114,7 +140,7 @@ fn main() -> io::Result<()> {
         let mut input = String::new();
         io::stdin().read_line(&mut input)?;
 
-        match rep(input.trim().to_string()) {
+        match rep(input.trim().to_string(), &env) {
             Ok(s) => println!("{s}"),
             Err(e) => println!("{}", e),
         }
