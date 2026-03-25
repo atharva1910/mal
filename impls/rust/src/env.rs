@@ -22,11 +22,12 @@ pub fn dump(me: &MalEnv) {
 }
 
 pub fn set(me: &MalEnv, key: MalType, val: MalType) {
+    println!("Set key {:?} val {:?}", key.clone(), val.clone());
     me.borrow_mut().set(key, val);
-    dump(me);
 }
 
 pub fn get(me: &MalEnv, key: MalType) -> Option<MalType> {
+    println!("Get input {:?}", key.clone());
     if let Some(ret) = me.borrow_mut().get(key.clone()) {
         return Some(ret);
     }

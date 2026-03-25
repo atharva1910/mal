@@ -7,7 +7,7 @@ pub struct Reader {
 }
 
 impl Reader {
-    pub fn read_str(input: String) -> Result<MalType, MalError> {
+    pub fn read(input: String) -> Result<MalType, MalError> {
         let mut reader = Self {
             tokens: Reader::tokenize(input),
             pos: 0
@@ -15,6 +15,15 @@ impl Reader {
         //dbg!(&reader.tokens);
         reader.read_from()
     }
+
+    //fn read_str(input: String) -> Result<MalType, MalError> {
+    //    let mut reader = Self {
+    //        tokens: Reader::tokenize(input),
+    //        pos: 0
+    //    };
+    //    //dbg!(&reader.tokens);
+    //    reader.read_from()
+    //}
 }
 
 impl Reader {

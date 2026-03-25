@@ -1,23 +1,20 @@
 use crate::types::MalType;
 
 pub struct Printer {
-    ret_string: String,
 }
 
 impl Printer{
-    pub fn pr_str(input: MalType) -> String {
-        let mut printer = Self {
-            ret_string: String::new()
-        };
-
-        let mut ret = String::new();
-        printer.gen_str(input, &mut ret);
-        ret
-        //printer.gen_str(input);
-            //printer.ret_string
+    pub fn print(input: MalType) -> String {
+        Printer::pr_str(input)
     }
 
-    fn gen_str(&mut self, input: MalType, ret: &mut String) {
+    fn pr_str(input: MalType) -> String {
+        let mut ret = String::new();
+        Printer::gen_str(input, &mut ret);
+        ret
+    }
+
+    fn gen_str(input: MalType, ret: &mut String) {
         match input {
             MalType::Int(i) => ret.push_str(&i.to_string()),
 
@@ -29,7 +26,7 @@ impl Printer{
                 ret.push_str("(");
 
                 for mt in t {
-                    self.gen_str(mt, ret);
+                    Printer::gen_str(mt, ret);
                 }
 
                 *ret =
@@ -39,7 +36,7 @@ impl Printer{
             MalType::Vec(t) => {
                 ret.push_str("[");
                 for mt in t {
-                    self.gen_str(mt, ret);
+                    Printer::gen_str(mt, ret);
                 }
                 *ret =
                     ret.trim().to_string() + "]";
@@ -48,8 +45,8 @@ impl Printer{
             MalType::Hash(t) => {
                 ret.push_str("{");
                 for (s, mt) in t.into_iter() {
-                    self.gen_str(s, ret);
-                    self.gen_str(mt, ret);
+                    Printer::gen_str(s, ret);
+                    Printer::gen_str(mt, ret);
                 }
                 *ret =
                     ret.trim().to_string() + "}";
