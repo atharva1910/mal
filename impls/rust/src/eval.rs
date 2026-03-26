@@ -32,10 +32,10 @@ impl Eval {
             "let*" => {
                 let new_env = env::create_child(env);
 
+                // Process the variable list
                 let Some(MalType::List(mut var_list)) = lmt.pop_front() else {
                     return Err(MalError::InvalidToken);
                 };
-
 
                 while let Some(var_def) = var_list.pop_front() {
                     match var_def {
@@ -55,8 +55,12 @@ impl Eval {
                         _ => return Err(MalError::InvalidToken),
                     }
                 };
-                // todo
-                todo!("What needs to be done here");
+
+                let mut ret: Result<MalType, MalError> = Ok(MalType::init_list());
+                while let Some(mt) = lmt.pop_front() {
+                    ret = Eval::eval(mt, &new_env);
+                }
+                ret
             }
 
             "def!" => {

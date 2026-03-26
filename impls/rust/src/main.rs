@@ -13,12 +13,11 @@ use crate::{
     reader::Reader,
 };
 
-
-
 fn rep(input: String, env: &MalEnv) -> Result<String, MalError> {
     let read_ret = Reader::read(input)?;
     let eval_ret = Eval::eval(read_ret, env)?;
-    Ok(Printer::print(eval_ret))
+    let printer_ret = Printer::print(eval_ret);
+    Ok(printer_ret)
 }
 
 fn main() -> io::Result<()> {
