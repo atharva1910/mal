@@ -2,7 +2,8 @@ EXEC_DIR := target/release
 STEP0 = step0_repl
 STEP1 = step1_read_print
 STEP2 = step2_eval
-STEP = $(STEP2)
+STEP3 = step3_env
+STEP = $(STEP3)
 
 $(EXEC_DIR)/$(STEP):
 	rm -rf $(EXEC_DIR)

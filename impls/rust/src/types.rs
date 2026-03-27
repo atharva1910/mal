@@ -154,7 +154,6 @@ pub enum MalError {
     ParsingError,
     InvalidToken,
     InvalidArgsLen,
-    InvalidSymbol,
 }
 
 impl fmt::Display for MalError {
@@ -162,10 +161,47 @@ impl fmt::Display for MalError {
        match *self {
            MalError::EOF => write!(f, "EOF"),
            MalError::Unbalanced => write!(f, "unbalanced"),
+           MalError::InvalidToken => write!(f, "not found"),
            MalError::ParsingError => write!(f, "Failed to Parse MalString"),
-           MalError::InvalidToken => write!(f, "Invalid Token"),
-           MalError::InvalidSymbol => write!(f, "Invalid Symbol"),
            MalError::InvalidArgsLen => write!(f, "Invalid Length of arguments"),
+       }
+    }
+}
+
+impl fmt::Display for MalType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            MalType::Int(i) => write!(f, "{}", i),
+            MalType::Float(x) => write!(f, "{}", x),
+
+            MalType::Str(ref s) => write!(f, "{}", s),
+            MalType::Sym(ref s) => write!(f, "{}", s),
+
+            MalType::Vec(ref v) => {
+                write!(f, "[")?;
+                v.iter().for_each(|mt| {
+                    _ = write!(f, "{}", mt.clone());
+                });
+                write!(f, "]")
+            }
+
+            MalType::List(ref l) => {
+                write!(f, "(")?;
+                l.iter().for_each(|mt| {
+                    _ = write!(f, "{}", mt.clone());
+                });
+                write!(f, ")")
+            }
+
+            MalType::Hash(ref h) => {
+                write!(f, "{{")?;
+                h.iter().for_each(|(k, v)| {
+                    _ = write!(f, "{} : {}", k.clone(), v.clone());
+                });
+                write!(f, "}}")
+            }
+
+            MalType::Func(_) => Ok(()),
        }
     }
 }

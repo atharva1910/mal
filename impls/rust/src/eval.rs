@@ -33,28 +33,37 @@ impl Eval {
                 let new_env = env::create_child(env);
 
                 // Process the variable list
-                let Some(MalType::List(mut var_list)) = lmt.pop_front() else {
+                let Some(var_def) = lmt.pop_front() else {
                     return Err(MalError::InvalidToken);
                 };
 
-                while let Some(var_def) = var_list.pop_front() {
-                    match var_def {
-                        MalType::List(mut l) => {
-                            let Some(key) = l.pop_front() else {
-                                return Err(MalError::InvalidToken);
-                            };
-
+                match var_def {
+                    MalType::List(mut l) => {
+                        while let Some(key) = l.pop_front() {
                             let Some(val) = l.pop_front() else {
-                                return Err(MalError::InvalidToken);
+                                return Err(MalError::EOF);
                             };
 
                             let val = Eval::eval(val, &new_env)?;
                             env::set(&new_env, key, val);
                         }
-
-                        _ => return Err(MalError::InvalidToken),
                     }
-                };
+
+                    MalType::Vec(v) => {
+                        for c in v.chunks_exact(2) {
+                            let key = c[0].clone();
+                            let val = Eval::eval(c[1].clone(), &new_env)?;
+                            env::set(&new_env, key, val);
+
+                        }
+
+                        if !v.chunks_exact(2).remainder().is_empty() {
+                            return Err(MalError::EOF);
+                        }
+                    }
+
+                    _ => panic!("What"),
+                }
 
                 let mut ret: Result<MalType, MalError> = Ok(MalType::init_list());
                 while let Some(mt) = lmt.pop_front() {
@@ -73,14 +82,14 @@ impl Eval {
                 };
 
                 let val = Eval::eval(val, env)?;
-                println!("setting key: {:?} val {:?}", key, val);
                 env::set(env, key, val.clone());
                 return Ok(val);
 
             }
 
             _ => {
-                let Some(MalType::Func(func)) = env::get(env, opr) else {
+                let Some(MalType::Func(func)) = env::get(env, opr.clone()) else {
+                    println!("{} not found", opr);
                     return Err(MalError::InvalidToken);
                 };
 
@@ -125,6 +134,7 @@ impl Eval {
                 if let Some(ret) = env::get(env, input.clone()) {
                     return Ok(ret);
                 }
+                println!("{} not found", input);
                 return Err(MalError::InvalidToken);
             }
 
