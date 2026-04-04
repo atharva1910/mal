@@ -102,6 +102,13 @@ impl MalType {
         return Ok(MalType::create_symbol_type(input)?);
     }
 
+    pub fn to_bool(input: Option<&MalType>) -> bool {
+        let Some(_) = input else {
+            return false;
+        };
+        true
+    }
+
     fn create_symbol_type(input:String) -> Result<MalType, MalError> {
         match input.as_str() {
             "+" | "-" | "*" | "/" => Ok(MalType::Sym(input)),

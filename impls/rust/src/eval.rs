@@ -1,6 +1,7 @@
 use crate::{
     types::{MalType, MalError},
     env::{MalEnv, self},
+    printer::Printer,
 };
 
 pub struct Eval{}
@@ -32,7 +33,6 @@ impl Eval {
             "let*" => {
                 let new_env = env::create_child(env);
 
-                // Process the variable list
                 let Some(var_def) = lmt.pop_front() else {
                     return Err(MalError::InvalidToken);
                 };
@@ -44,6 +44,8 @@ impl Eval {
                                 return Err(MalError::EOF);
                             };
 
+                            println!("let* Eval:");
+                            Printer::print(val.clone());
                             let val = Eval::eval(val, &new_env)?;
                             env::set(&new_env, key, val);
                         }
@@ -93,7 +95,7 @@ impl Eval {
                     return Err(MalError::InvalidToken);
                 };
 
-                let args = lmt.into_iter().map(|mt| Eval::eval(mt, env)).collect::<Result<Vec<MalType>, MalError>>();
+                let args: Result<Vec<MalType>, MalError> = lmt.into_iter().map(|mt| Eval::eval(mt, env)).collect();
                 return Eval::execute_func(func, &args?);
             }
         }
@@ -125,11 +127,19 @@ impl Eval {
     }
 
 
+    fn print_eval(input: &MalType, env: &MalEnv) {
+        if MalType::to_bool(env::get(env, MalType::init_sym("DEBUG-EVAL")).as_ref()) {
+            println!("EVAL: {}", Printer::print(input.clone()));
+        }
+    }
+
     pub fn eval(input: MalType, env: &MalEnv) -> Result<MalType, MalError> {
+        Eval::print_eval(&input, env);
         match input.clone() {
             MalType::List(_) => Eval::eval_list(input.clone(), env),
             MalType::Vec(_) => Eval::eval_vec(input.clone(), env),
             MalType::Hash(_) => Eval::eval_hash(input.clone(), env),
+
             MalType::Sym(_) => {
                 if let Some(ret) = env::get(env, input.clone()) {
                     return Ok(ret);

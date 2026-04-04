@@ -15,6 +15,7 @@ use crate::{
 
 fn rep(input: String, env: &MalEnv) -> Result<String, MalError> {
     let read_ret = Reader::read(input)?;
+    dbg!(&read_ret);
     let eval_ret = Eval::eval(read_ret, env)?;
     let printer_ret = Printer::print(eval_ret);
     Ok(printer_ret)

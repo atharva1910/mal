@@ -59,6 +59,9 @@ pub fn init() -> MalEnv {
     ret.set(MalType::init_sym("*"), MalType::init_func(Env::mul));
     ret.set(MalType::init_sym("/"), MalType::init_func(Env::div));
     ret.set(MalType::init_sym("-"), MalType::init_func(Env::sub));
+    ret.set(MalType::init_sym("false"), MalType::init_sym("false"));
+    ret.set(MalType::init_sym("nil"), MalType::init_sym("false"));
+    ret.set(MalType::init_sym("true"), MalType::init_sym("true"));
 
     create_mal_env(ret)
 }
