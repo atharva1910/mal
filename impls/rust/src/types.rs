@@ -15,6 +15,7 @@ pub enum MalType {
     Vec(Vec<MalType>),
     Hash(HashMap<MalType, MalType>),
     Func(MalFunc),
+    Bool(bool),
 }
 
 impl Hash for MalType {
@@ -102,11 +103,16 @@ impl MalType {
         return Ok(MalType::create_symbol_type(input)?);
     }
 
-    pub fn to_bool(input: Option<&MalType>) -> bool {
+    pub fn create_bool(input: bool) -> Result<MalType, MalError> {
+        Ok(MalType::Bool(input))
+    }
+
+    pub fn to_bool(input: Option<&MalType>) -> Result<MalType, MalError> {
         let Some(_) = input else {
-            return false;
+            return MalType::create_bool(false);
         };
-        true
+
+        MalType::create_bool(true)
     }
 
     fn create_symbol_type(input:String) -> Result<MalType, MalError> {

@@ -30,6 +30,23 @@ impl Eval {
 
 
         match &opr_type[..] {
+            "list?" => {
+                let Some(MalType::List(_)) = lmt.pop_front() else {
+                    return Ok(MalType::create_bool(false)?);
+                };
+
+                Ok(MalType::create_bool(true)?)
+            }
+
+            "do" => {
+                let mut ret: MalType = MalType::init_list();
+                while let Some(mt) = lmt.pop_front()  {
+                    ret = Eval::eval(mt, env)?;
+                }
+
+                Ok(ret)
+            }
+
             "let*" => {
                 let new_env = env::create_child(env);
 
@@ -126,28 +143,29 @@ impl Eval {
         Ok(ret)
     }
 
+    fn eval_sym(input: MalType, env: &MalEnv) -> Result<MalType, MalError> {
+        if let Some(ret) = env::get(env, input) {
+            return Ok(ret);
+        }
+        return Err(MalError::InvalidToken);
+    }
 
-    fn print_eval(input: &MalType, env: &MalEnv) {
-        if MalType::to_bool(env::get(env, MalType::init_sym("DEBUG-EVAL")).as_ref()) {
+    fn print_eval(input: &MalType, env: &MalEnv) -> Result<(), MalError> {
+        let MalType::Bool(b) = MalType::to_bool(env::get(env, MalType::init_sym("DEBUG-EVAL")).as_ref())? else {
+            panic!("HUH?");
+        };
+
+        if b {
             println!("EVAL: {}", Printer::print(input.clone()));
         }
     }
 
     pub fn eval(input: MalType, env: &MalEnv) -> Result<MalType, MalError> {
-        Eval::print_eval(&input, env);
-        match input.clone() {
-            MalType::List(_) => Eval::eval_list(input.clone(), env),
-            MalType::Vec(_) => Eval::eval_vec(input.clone(), env),
-            MalType::Hash(_) => Eval::eval_hash(input.clone(), env),
-
-            MalType::Sym(_) => {
-                if let Some(ret) = env::get(env, input.clone()) {
-                    return Ok(ret);
-                }
-                println!("{} not found", input);
-                return Err(MalError::InvalidToken);
-            }
-
+        match &input {
+            MalType::List(_) => Eval::eval_list(input, env),
+            MalType::Vec(_) => Eval::eval_vec(input, env),
+            MalType::Hash(_) => Eval::eval_hash(input, env),
+            MalType::Sym(_) => Eval::eval_sym(input, env),
             _ =>  Ok(input)
         }
     }
